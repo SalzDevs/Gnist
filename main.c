@@ -22,11 +22,14 @@ void initParticle(Particle* part){
     part->alive = true;
     part->health = 100;
     part->particleCircle.radius = 10;
-    part->particleCircle.center.x = 0;
-    part->particleCircle.center.y = 0;
+    part->particleCircle.center.x = 300;
+    part->particleCircle.center.y = 200;
 }
 
 int main(void) {
+    Particle part;
+    initParticle(&part);
+
     const int screenWidth = 800;
 
     const int screenHeight = 450;
@@ -38,11 +41,9 @@ int main(void) {
     while (!WindowShouldClose()) {
         BeginDrawing();
 
-        
+        DrawCircle(part.particleCircle.center.x, part.particleCircle.center.y, part.particleCircle.radius, MAROON); 
 
         ClearBackground(RAYWHITE);
-
-        DrawText("Congrats! You just entered Gnist!", 190, 200, 20, LIGHTGRAY);
 
         EndDrawing();
     }
