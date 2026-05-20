@@ -2,6 +2,9 @@
 #include <stdbool.h>
 #include "raylib.h"
 
+#define WINDOW_WIDTH 800 
+#define WINDOW_HEIGHT 450 
+
 typedef struct{
   int x;
   int y;
@@ -22,19 +25,15 @@ void initParticle(Particle* part){
     part->alive = true;
     part->health = 100;
     part->particleCircle.radius = 10;
-    part->particleCircle.center.x = 300;
-    part->particleCircle.center.y = 200;
+    part->particleCircle.center.x = WINDOW_WIDTH/2;
+    part->particleCircle.center.y = WINDOW_HEIGHT/2;
 }
 
 int main(void) {
     Particle part;
     initParticle(&part);
 
-    const int screenWidth = 800;
-
-    const int screenHeight = 450;
-
-    InitWindow(screenWidth, screenHeight, "Gnist");
+    InitWindow(WINDOW_WIDTH,WINDOW_HEIGHT, "Gnist");
 
     SetTargetFPS(60);               
 
