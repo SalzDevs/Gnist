@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdbool.h>
+#include "raylib.h"
 
 typedef struct{
   int x;
@@ -26,8 +27,26 @@ void initParticle(Particle* part){
 }
 
 int main(void) {
-    Particle part;
-    initParticle(&part);
-    printf("particle (alive:%d | health:%d | x:%d | y:%d | radius:%d)\n", part.alive,part.health,part.particleCircle.center.x,part.particleCircle.center.y,part.particleCircle.radius);
+    const int screenWidth = 800;
+
+    const int screenHeight = 450;
+
+    InitWindow(screenWidth, screenHeight, "Gnist");
+
+    SetTargetFPS(60);               
+
+    while (!WindowShouldClose()) {
+        BeginDrawing();
+
+        
+
+        ClearBackground(RAYWHITE);
+
+        DrawText("Congrats! You just entered Gnist!", 190, 200, 20, LIGHTGRAY);
+
+        EndDrawing();
+    }
+
+    CloseWindow();
     return 0;
 }

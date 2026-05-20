@@ -1,0 +1,5 @@
+CompileFlags:
+  Add:
+    - "-Iexternal/raylib/src"
+    - "-Iexternal/raylib/src/external"
+    - "-std=c11"
