@@ -1,54 +1,43 @@
-#include <stdio.h>
 #include <stdbool.h>
+#include <stdio.h>
 #include "raylib.h"
 
 #define WINDOW_WIDTH 800 
 #define WINDOW_HEIGHT 450 
 
-typedef struct{
-  int x;
-  int y;
-} ParticleCenter;
-
-typedef struct{
-  ParticleCenter center; 
-  int radius;
-} ParticleCircle;
-
 typedef struct {
   bool alive;
   int health;
-  ParticleCircle particleCircle;
+  Vector2 center;
+  int radius;
 } Particle;
 
-void initParticle(Particle* part){
+void initParticle(Particle* part, float x, float y){
     part->alive = true;
     part->health = 100;
-    part->particleCircle.radius = 10;
-    part->particleCircle.center.x = WINDOW_WIDTH/2;
-    part->particleCircle.center.y = WINDOW_HEIGHT/2;
+    part->radius = 10;
+    part->center = (Vector2) {x,y}; 
 }
 
 int main(void) {
-    Particle part;
-    initParticle(&part);
     Particle particles[1];
-    particles[0] = part;
     
-    InitWindow(WINDOW_WIDTH,WINDOW_HEIGHT, "Gnist");
+    initParticle(&particles[0],WINDOW_WIDTH/2,WINDOW_HEIGHT/2);
+    
+    size_t length_particles = sizeof(particles)/sizeof(particles[0]);
+    
+    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Gnist");
 
     SetTargetFPS(60);              
 
-    size_t length_particles = sizeof(particles)/sizeof(particles[0]);
     
     while (!WindowShouldClose()) {
         BeginDrawing();
-        
-        for (int i = 0; i<length_particles; i++) {
-          DrawCircle(particles[i].particleCircle.center.x, particles[i].particleCircle.center.y, particles[i].particleCircle.radius, MAROON); 
-        }
-
         ClearBackground(RAYWHITE);
+
+        for (int i = 0; i<length_particles; i++) {
+          DrawCircle(particles[i].center.x, particles[i].center.y, particles[i].radius, MAROON); 
+        }
 
         EndDrawing();
     }
