@@ -32,15 +32,21 @@ void initParticle(Particle* part){
 int main(void) {
     Particle part;
     initParticle(&part);
-
+    Particle particles[1];
+    particles[0] = part;
+    
     InitWindow(WINDOW_WIDTH,WINDOW_HEIGHT, "Gnist");
 
-    SetTargetFPS(60);               
+    SetTargetFPS(60);              
 
+    size_t length_particles = sizeof(particles)/sizeof(particles[0]);
+    
     while (!WindowShouldClose()) {
         BeginDrawing();
-
-        DrawCircle(part.particleCircle.center.x, part.particleCircle.center.y, part.particleCircle.radius, MAROON); 
+        
+        for (int i = 0; i<length_particles; i++) {
+          DrawCircle(particles[i].particleCircle.center.x, particles[i].particleCircle.center.y, particles[i].particleCircle.radius, MAROON); 
+        }
 
         ClearBackground(RAYWHITE);
 
