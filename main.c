@@ -1,6 +1,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <math.h>
 #include "raylib.h"
 
 #define WINDOW_WIDTH 800 
@@ -11,6 +12,7 @@ typedef struct {
   int health;
   Vector2 center;
   int radius;
+  Vector2 velocity;
 } Particle;
 
 typedef struct{
@@ -19,12 +21,16 @@ typedef struct{
   Particle* arr;
 } Particles;
 
+
 void initParticle(Particle* part, float x, float y){
   part->alive = true;
   part->health = 100;
   part->radius = 10;
   part->center = (Vector2) {x,y}; 
-}
+  float speed = GetRandomValue(10,100);
+  float angle = GetRandomValue(0,360)*DEG2RAD;
+  part->velocity = (Vector2){ cosf(angle) * speed, sinf(angle) * speed };
+}  
 
 
 void initParticles(size_t size, Particles *particles){
@@ -42,10 +48,9 @@ void addParticle(Particles *particles, Particle part){
   particles->count++;
 }
 
-void moveParticle(Particle *part){
-    Vector2 move = {GetRandomValue(-10,10),GetRandomValue(-10,10)};
-    part->center.x += move.x;
-    part->center.y += move.y;
+void moveParticle(Particle *part,float dt){
+    part->center.x += part->velocity.x * dt;
+    part->center.y += part->velocity.y * dt;
 }
 
 int main(void) {
@@ -82,7 +87,7 @@ int main(void) {
 
     for (size_t i = 0; i<particles.count; i++) {
       DrawCircle(particles.arr[i].center.x, particles.arr[i].center.y, particles.arr[i].radius, MAROON);
-      moveParticle(&particles.arr[i]);
+      moveParticle(&particles.arr[i],dt);
     }
 
     EndDrawing();
