@@ -16,7 +16,7 @@ typedef struct {
 typedef struct{
   size_t size;
   size_t count;
-  Particle** arr;
+  Particle* arr;
 } Particles;
 
 void initParticle(Particle* part, float x, float y){
@@ -38,49 +38,45 @@ void moveParticle(Vector2 moveVec,Particle *part){
   part->center.y += moveVec.y;
 }
 
-void addParticle(Particles *particles, Particle *part){
-  if (particles->count+1 > particles->size) particles->size+=20;
+void addParticle(Particles *particles, Particle part){
+  if (particles->count+1 > particles->size){
+    particles->size+=20;
+    particles->arr = realloc(particles->arr, particles->size * sizeof(Particles));
+  }
   particles->arr[particles->count] = part;
   particles->count++;
 }
 
 int main(void) {
   Particles particles;
-  Particle part;
-  initParticle(&part,100,200);
-  initParticles(3,&particles);
-  printf("Particles: (count:%zu size:%zu)\n",particles.count,particles.size);
-  addParticle(&particles, &part);
-  addParticle(&particles, &part);
-  addParticle(&particles, &part);
-  printf("Particles: (count:%zu size:%zu)\n",particles.count,particles.size); 
-  addParticle(&particles, &part);
-  addParticle(&particles, &part);
-  printf("Particles: (count:%zu size:%zu)\n",particles.count,particles.size);
-  for (int i=0;i<particles.count;i++){
-    printf("Particle number {%d} (alive:%d health:%d radius:%d x:%f y:%f)\n",i,particles.arr[i]->alive,particles.arr[i]->health,particles.arr[i]->radius,particles.arr[i]->center.x,particles.arr[i]->center.y);
-  }
-  //moveParticle((Vector2){100,-50}, &particles[0]);
-  /*
-  size_t length_particles = sizeof(particles)/sizeof(particles[0]);
-
+  initParticles(50,&particles);
+ 
   InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Gnist");
 
   SetTargetFPS(60);              
-
-
+  float spawnTimer = 0.0f;
   while (!WindowShouldClose()) {
+    float dt = GetFrameTime();
+
     BeginDrawing();
     ClearBackground(RAYWHITE);
 
-    for (int i = 0; i<length_particles; i++) {
-      DrawCircle(particles[i].center.x, particles[i].center.y, particles[i].radius, MAROON); 
+    spawnTimer+=dt;
+    if (spawnTimer > 5.0f){
+      Particle part;
+      initParticle(&part, 200, 100);
+      addParticle(&particles, part);
+      spawnTimer -= 5.0f;
+    }
+
+    for (size_t i = 0; i<particles.count; i++) {
+      DrawCircle(particles.arr[i].center.x, particles.arr[i].center.y, particles.arr[i].radius, MAROON); 
     }
 
     EndDrawing();
   }
 
   CloseWindow();
-  */
+  free(particles.arr);
   return 0;
 }
