@@ -50,7 +50,12 @@ void addParticle(Particles *particles, Particle part){
 int main(void) {
   Particles particles;
   initParticles(50,&particles);
- 
+
+  /*spanw the first particle*/ 
+  Particle part;
+  initParticle(&part, 200, 100);
+  addParticle(&particles, part);
+
   InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Gnist");
 
   SetTargetFPS(60);              
