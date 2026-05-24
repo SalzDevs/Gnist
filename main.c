@@ -4,15 +4,19 @@
 #include <math.h>
 #include "raylib.h"
 
-#define WINDOW_WIDTH 800 
-#define WINDOW_HEIGHT 450 
+#define WINDOW_WIDTH  800
+#define WINDOW_HEIGHT 450
+#define GRAVITY       2000.0f
+#define SOFTENING     10.0f       /* prevents infinite force when particles overlap */
 
 typedef struct {
-  bool alive;
-  int health;
+  bool    alive;
+  int     health;
   Vector2 center;
-  int radius;
+  float   radius;
   Vector2 velocity;
+  Vector2 acceleration;
+  float   mass;
 } Particle;
 
 typedef struct{
@@ -23,15 +27,17 @@ typedef struct{
 
 
 void initParticle(Particle* part, float x, float y){
-  part->alive = true;
-  part->health = 100;
-  part->radius = 10;
-  part->center = (Vector2) {x,y}; 
-  float speed = GetRandomValue(10,100);
-  float angle = GetRandomValue(0,360)*DEG2RAD;
-  part->velocity = (Vector2){ cosf(angle) * speed, sinf(angle) * speed };
+  part->alive        = true;
+  part->health       = 100;
+  part->mass         = (float)GetRandomValue(1, 10);
+  part->radius       = 3.0f + part->mass * 1.2f;   /* bigger mass = bigger circle */
+  part->center       = (Vector2){x, y};
+  part->velocity     = (Vector2){0};
+  part->acceleration = (Vector2){0};
+  float speed = (float)GetRandomValue(20, 120);
+  float angle = (float)GetRandomValue(0, 360) * DEG2RAD;
+  part->velocity = (Vector2){cosf(angle) * speed, sinf(angle) * speed};
 }  
-
 
 void initParticles(size_t size, Particles *particles){
   particles->size = size;
@@ -48,9 +54,39 @@ void addParticle(Particles *particles, Particle part){
   particles->count++;
 }
 
-void moveParticle(Particle *part,float dt){
-    part->center.x += part->velocity.x * dt;
-    part->center.y += part->velocity.y * dt;
+/* ---- N-body gravity: every particle pulls every other ---- */
+void updateParticles(Particle *arr, size_t count, float dt) {
+    /* pass 1 — reset accelerations */
+    for (size_t i = 0; i < count; i++) {
+        arr[i].acceleration = (Vector2){0};
+    }
+
+    /* pass 2 — accumulate gravitational pull for every unique pair */
+    for (size_t i = 0; i < count; i++) {
+        for (size_t j = i + 1; j < count; j++) {
+            float dx = arr[j].center.x - arr[i].center.x;
+            float dy = arr[j].center.y - arr[i].center.y;
+            float dist_sq = dx*dx + dy*dy + SOFTENING;
+            float dist    = sqrtf(dist_sq);
+            float force   = GRAVITY / dist_sq;
+            float fx      = force * dx / dist;
+            float fy      = force * dy / dist;
+
+            /* A pulls on B, B pulls on A (equal & opposite) */
+            arr[i].acceleration.x += fx * arr[j].mass;
+            arr[i].acceleration.y += fy * arr[j].mass;
+            arr[j].acceleration.x -= fx * arr[i].mass;
+            arr[j].acceleration.y -= fy * arr[i].mass;
+        }
+    }
+
+    /* pass 3 — integrate acceleration → velocity → position */
+    for (size_t i = 0; i < count; i++) {
+        arr[i].velocity.x += arr[i].acceleration.x * dt;
+        arr[i].velocity.y += arr[i].acceleration.y * dt;
+        arr[i].center.x   += arr[i].velocity.x * dt;
+        arr[i].center.y   += arr[i].velocity.y * dt;
+    }
 }
 
 int main(void) {
@@ -85,9 +121,11 @@ int main(void) {
       spawnTimer -= 5.0f;
     }
 
-    for (size_t i = 0; i<particles.count; i++) {
-      DrawCircle(particles.arr[i].center.x, particles.arr[i].center.y, particles.arr[i].radius, MAROON);
-      moveParticle(&particles.arr[i],dt);
+    updateParticles(particles.arr, particles.count, dt);
+
+    for (size_t i = 0; i < particles.count; i++) {
+      float r = particles.arr[i].radius;
+      DrawCircle((int)particles.arr[i].center.x, (int)particles.arr[i].center.y, r, MAROON);
     }
 
     EndDrawing();
