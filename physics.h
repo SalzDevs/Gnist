@@ -17,7 +17,8 @@ typedef struct {
     float  max_ttl;
 } Particle;
 
-#define SOFTENING 10.0f
+#define SOFTENING   10.0f
+#define RESTITUTION 0.9f
 
 void physics_update(Particle *arr, size_t count, float dt,
                     float world_w, float world_h, float gravity);
