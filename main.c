@@ -14,6 +14,46 @@
 #define WINDOW_WIDTH  800
 #define WINDOW_HEIGHT 450
 
+static const char *lighting_vs =
+    "#version 330                       \n"
+    "in vec3 vertexPosition;            \n"
+    "in vec2 vertexTexCoord;            \n"
+    "in vec3 vertexNormal;              \n"
+    "in vec4 vertexColor;               \n"
+    "uniform mat4 mvp;                  \n"
+    "uniform mat4 matModel;             \n"
+    "out vec3 fragPosition;             \n"
+    "out vec3 fragNormal;               \n"
+    "out vec2 fragTexCoord;             \n"
+    "out vec4 fragColor;                \n"
+    "void main()                        \n"
+    "{                                  \n"
+    "    fragPosition = vec3(matModel * vec4(vertexPosition, 1.0)); \n"
+    "    fragNormal   = normalize(vec3(matModel * vec4(vertexNormal, 0.0))); \n"
+    "    fragTexCoord = vertexTexCoord; \n"
+    "    fragColor    = vertexColor;    \n"
+    "    gl_Position  = mvp * vec4(vertexPosition, 1.0); \n"
+    "}                                  \n";
+
+static const char *lighting_fs =
+    "#version 330                       \n"
+    "in vec3 fragPosition;              \n"
+    "in vec3 fragNormal;                \n"
+    "in vec2 fragTexCoord;              \n"
+    "in vec4 fragColor;                 \n"
+    "uniform vec3 lightDir;             \n"
+    "uniform vec4 colDiffuse;           \n"
+    "out vec4 finalColor;               \n"
+    "void main()                        \n"
+    "{                                  \n"
+    "    vec3 n = normalize(fragNormal);\n"
+    "    vec3 l = normalize(lightDir);  \n"
+    "    float diff = max(dot(n, l), 0.0); \n"
+    "    float ambient = 0.15;          \n"
+    "    vec3 lit = fragColor.rgb * (ambient + diff * 0.85); \n"
+    "    finalColor = vec4(lit, fragColor.a); \n"
+    "}                                  \n";
+
 int main(void) {
     Pool pool;
     pool_init(&pool, 50);
@@ -30,6 +70,9 @@ int main(void) {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Gnist");
     SetTargetFPS(60);
+
+    Shader lighting = LoadShaderFromMemory(lighting_vs, lighting_fs);
+    int lightDirLoc = GetShaderLocation(lighting, "lightDir");
 
     Camera3D camera = {0};
     camera.position = (Vector3){400, 225, 800};
@@ -110,6 +153,10 @@ int main(void) {
         DrawCubeWires((Vector3){world_w*0.5f, world_h*0.5f, world_d*0.5f},
                       world_w, world_h, world_d, DARKGRAY);
 
+        float ldir[3] = {0.6f, -1.0f, -0.4f};
+        SetShaderValue(lighting, lightDirLoc, ldir, SHADER_UNIFORM_VEC3);
+        BeginShaderMode(lighting);
+
         for (size_t i = 0; i < pool.len; i++) {
             Particle *p = &pool.data[i];
             float frac  = p->ttl / p->max_ttl;
@@ -120,6 +167,7 @@ int main(void) {
             DrawSphereEx((Vector3){p->center.x, p->center.y, p->center.z}, r, 32, 32, c);
         }
 
+        EndShaderMode();
         EndMode3D();
 
         char hud[128];
