@@ -12,20 +12,22 @@ int main(void) {
     pool_init(&pool, 50);
 
     Spawner spawner;
-    spawner_init(&spawner, 5.0f, WINDOW_WIDTH, WINDOW_HEIGHT);
+    spawner_init(&spawner, 5.0f);
 
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Gnist");
     SetTargetFPS(60);
 
     while (!WindowShouldClose()) {
         float dt = GetFrameTime();
+        float world_w = (float)GetScreenWidth();
+        float world_h = (float)GetScreenHeight();
 
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        spawner_update(&spawner, &pool, dt);
-        physics_update(pool.data, pool.len, dt,
-                       WINDOW_WIDTH, WINDOW_HEIGHT);
+        spawner_update(&spawner, &pool, dt, world_w, world_h);
+        physics_update(pool.data, pool.len, dt, world_w, world_h);
         pool_reap(&pool);
 
         for (size_t i = 0; i < pool.len; i++) {

@@ -6,11 +6,10 @@
 typedef struct {
     float interval;
     float accumulator;
-    float world_w;
-    float world_h;
 } Spawner;
 
-void spawner_init(Spawner *s, float interval, float world_w, float world_h);
-void spawner_update(Spawner *s, Pool *pool, float dt);
+void spawner_init(Spawner *s, float interval);
+void spawner_update(Spawner *s, Pool *pool, float dt,
+                    float world_w, float world_h);
 
 #endif

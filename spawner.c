@@ -15,19 +15,18 @@ static void init_particle(Particle *part, float x, float y) {
     part->velocity = (float2){cosf(angle) * speed, sinf(angle) * speed};
 }
 
-void spawner_init(Spawner *s, float interval, float world_w, float world_h) {
+void spawner_init(Spawner *s, float interval) {
     s->interval    = interval;
-    s->accumulator = interval;  /* fire on first tick */
-    s->world_w     = world_w;
-    s->world_h     = world_h;
+    s->accumulator = interval;
 }
 
-void spawner_update(Spawner *s, Pool *pool, float dt) {
+void spawner_update(Spawner *s, Pool *pool, float dt,
+                    float world_w, float world_h) {
     s->accumulator += dt;
     while (s->accumulator >= s->interval) {
         s->accumulator -= s->interval;
-        float x = (float)GetRandomValue(0, (int)s->world_w);
-        float y = (float)GetRandomValue(0, (int)s->world_h);
+        float x = (float)GetRandomValue(0, (int)world_w);
+        float y = (float)GetRandomValue(0, (int)world_h);
         Particle part;
         init_particle(&part, x, y);
         pool_push(pool, part);
