@@ -34,7 +34,6 @@ int main(void) {
         float world_w = (float)GetScreenWidth();
         float world_h = (float)GetScreenHeight();
 
-        /* ---- controls ---- */
         if (IsKeyPressed(KEY_TAB)) settings_open = !settings_open;
         if (IsKeyPressed(KEY_SPACE) && !settings_open) paused = !paused;
         if (IsKeyPressed(KEY_R) && !settings_open) {
@@ -42,7 +41,6 @@ int main(void) {
             spawner.accumulator = spawner.interval;
         }
 
-        /* ---- simulation ---- */
         if (!paused && !settings_open) {
             spawner_update(&spawner, &pool, dt, world_w, world_h);
             physics_update(pool.data, pool.len, dt,
@@ -50,7 +48,6 @@ int main(void) {
             pool_reap(&pool);
         }
 
-        /* ---- draw ---- */
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
@@ -64,7 +61,6 @@ int main(void) {
             DrawCircle((int)p->center.x, (int)p->center.y, r, c);
         }
 
-        /* ---- HUD ---- */
         char hud[128];
         snprintf(hud, sizeof(hud),
                  "FPS: %d | particles: %zu | gravity: %.0f | interval: %.1fs | %s",
@@ -74,21 +70,20 @@ int main(void) {
         DrawText(hud, 10, 10, 18, DARKGRAY);
         DrawText("[TAB:settings] [SPACE:pause] [R:clear]", 10, 32, 14, LIGHTGRAY);
 
-        /* ---- settings overlay ---- */
         if (settings_open) {
             DrawRectangle(0, 0, (int)world_w, (int)world_h,
                           (Color){0, 0, 0, 160});
 
-            float pw = 480.0f, ph = 310.0f;
+            float pw = 520.0f, ph = 460.0f;
             float px = (world_w - pw) * 0.5f;
             float py = (world_h - ph) * 0.5f;
             Rectangle panel = {px, py, pw, ph};
 
             GuiPanel(panel, "Settings");
 
-            float pad  = 24.0f;
-            float gap  = 34.0f;
-            float y    = py + 50.0f;
+            float pad   = 24.0f;
+            float gap   = 34.0f;
+            float y     = py + 50.0f;
             float lbl_w = 80.0f;
             float val_w = 50.0f;
             float bar_w = pw - pad * 2.0f - lbl_w - val_w - 16.0f;
@@ -108,11 +103,56 @@ int main(void) {
             GuiLabel((Rectangle){px + pad + lbl_w + bar_w + 16, y, val_w, 24},
                      TextFormat("%.0f", gravity));
 
+            y += gap + 4.0f;
+            float c_lbl  = 60.0f;
+            float c_tag  = 26.0f;
+            float c_bar  = 105.0f;
+            float c_val  = 36.0f;
+            float c_gap  = 6.0f;
+
+            GuiLabel((Rectangle){px + pad, y + 2, c_lbl, 24}, "lifetime");
+            GuiLabel((Rectangle){px + pad + c_lbl + c_gap, y + 2, c_tag, 24}, "min");
+            GuiSliderBar((Rectangle){px + pad + c_lbl + c_tag + c_gap*2, y, c_bar, 24},
+                         NULL, NULL, &spawner.lifetime_min, 1.0f, 30.0f);
+            GuiLabel((Rectangle){px + pad + c_lbl + c_tag + c_bar + c_gap*3, y + 2, c_val, 24},
+                     TextFormat("%.0f", spawner.lifetime_min));
+            GuiLabel((Rectangle){px + pad + c_lbl + c_tag + c_bar + c_val + c_gap*4, y + 2, c_tag, 24}, "max");
+            GuiSliderBar((Rectangle){px + pad + c_lbl + c_tag*2 + c_bar + c_val + c_gap*5, y, c_bar, 24},
+                         NULL, NULL, &spawner.lifetime_max, 1.0f, 30.0f);
+            GuiLabel((Rectangle){px + pad + c_lbl + c_tag*2 + c_bar*2 + c_val + c_gap*6, y + 2, c_val, 24},
+                     TextFormat("%.0f", spawner.lifetime_max));
+
+            y += gap;
+            GuiLabel((Rectangle){px + pad, y + 2, c_lbl, 24}, "speed");
+            GuiLabel((Rectangle){px + pad + c_lbl + c_gap, y + 2, c_tag, 24}, "min");
+            GuiSliderBar((Rectangle){px + pad + c_lbl + c_tag + c_gap*2, y, c_bar, 24},
+                         NULL, NULL, &spawner.speed_min, 5.0f, 300.0f);
+            GuiLabel((Rectangle){px + pad + c_lbl + c_tag + c_bar + c_gap*3, y + 2, c_val, 24},
+                     TextFormat("%.0f", spawner.speed_min));
+            GuiLabel((Rectangle){px + pad + c_lbl + c_tag + c_bar + c_val + c_gap*4, y + 2, c_tag, 24}, "max");
+            GuiSliderBar((Rectangle){px + pad + c_lbl + c_tag*2 + c_bar + c_val + c_gap*5, y, c_bar, 24},
+                         NULL, NULL, &spawner.speed_max, 5.0f, 300.0f);
+            GuiLabel((Rectangle){px + pad + c_lbl + c_tag*2 + c_bar*2 + c_val + c_gap*6, y + 2, c_val, 24},
+                     TextFormat("%.0f", spawner.speed_max));
+
+            y += gap;
+            GuiLabel((Rectangle){px + pad, y + 2, c_lbl, 24}, "mass");
+            GuiLabel((Rectangle){px + pad + c_lbl + c_gap, y + 2, c_tag, 24}, "min");
+            GuiSliderBar((Rectangle){px + pad + c_lbl + c_tag + c_gap*2, y, c_bar, 24},
+                         NULL, NULL, &spawner.mass_min, 1.0f, 20.0f);
+            GuiLabel((Rectangle){px + pad + c_lbl + c_tag + c_bar + c_gap*3, y + 2, c_val, 24},
+                     TextFormat("%.0f", spawner.mass_min));
+            GuiLabel((Rectangle){px + pad + c_lbl + c_tag + c_bar + c_val + c_gap*4, y + 2, c_tag, 24}, "max");
+            GuiSliderBar((Rectangle){px + pad + c_lbl + c_tag*2 + c_bar + c_val + c_gap*5, y, c_bar, 24},
+                         NULL, NULL, &spawner.mass_max, 1.0f, 20.0f);
+            GuiLabel((Rectangle){px + pad + c_lbl + c_tag*2 + c_bar*2 + c_val + c_gap*6, y + 2, c_val, 24},
+                     TextFormat("%.0f", spawner.mass_max));
+
             y += gap + 8.0f;
             float btn_w = (pw - pad * 2.0f - 12.0f) * 0.5f;
             if (GuiButton((Rectangle){px + pad, y, btn_w, 30}, "reset defaults")) {
                 gravity = 2000.0f;
-                spawner_set_interval(&spawner, 5.0f);
+                spawner_init(&spawner, 5.0f);
             }
             if (GuiButton((Rectangle){px + pad + btn_w + 12, y, btn_w, 30}, "clear all")) {
                 pool.len = 0;
