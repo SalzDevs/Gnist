@@ -117,7 +117,7 @@ int main(void) {
             if (frac < 0.3f) r *= frac / 0.3f;
             Color c = ColorFromHSV(p->mass * 24.0f, 0.8f, 0.9f);
             c.a = 255;
-            DrawSphere((Vector3){p->center.x, p->center.y, p->center.z}, r, c);
+            DrawSphereEx((Vector3){p->center.x, p->center.y, p->center.z}, r, 32, 32, c);
         }
 
         EndMode3D();
