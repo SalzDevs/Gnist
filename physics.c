@@ -2,7 +2,7 @@
 #include <math.h>
 
 void physics_update(Particle *arr, size_t count, float dt,
-                    float world_w, float world_h) {
+                    float world_w, float world_h, float gravity) {
     for (size_t i = 0; i < count; i++) {
         arr[i].acceleration = (float2){0, 0};
     }
@@ -13,7 +13,7 @@ void physics_update(Particle *arr, size_t count, float dt,
             float dy = arr[j].center.y - arr[i].center.y;
             float dist_sq = dx*dx + dy*dy + SOFTENING;
             float dist    = sqrtf(dist_sq);
-            float force   = GRAVITY / dist_sq;
+            float force   = gravity / dist_sq;
             float fx      = force * dx / dist;
             float fy      = force * dy / dist;
 

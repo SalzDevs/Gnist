@@ -20,6 +20,14 @@ void spawner_init(Spawner *s, float interval) {
     s->accumulator = interval;
 }
 
+void spawner_set_interval(Spawner *s, float interval) {
+    s->interval = interval;
+}
+
+float spawner_get_interval(const Spawner *s) {
+    return s->interval;
+}
+
 void spawner_update(Spawner *s, Pool *pool, float dt,
                     float world_w, float world_h) {
     s->accumulator += dt;
