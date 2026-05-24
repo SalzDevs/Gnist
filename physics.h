@@ -4,14 +4,14 @@
 #include <stddef.h>
 
 typedef struct {
-    float x, y;
-} float2;
+    float x, y, z;
+} float3;
 
 typedef struct {
-    float2 center;
+    float3 center;
     float  radius;
-    float2 velocity;
-    float2 acceleration;
+    float3 velocity;
+    float3 acceleration;
     float  mass;
     float  ttl;
     float  max_ttl;
@@ -21,6 +21,7 @@ typedef struct {
 #define RESTITUTION 0.9f
 
 void physics_update(Particle *arr, size_t count, float dt,
-                    float world_w, float world_h, float gravity);
+                    float world_w, float world_h, float world_d,
+                    float gravity);
 
 #endif

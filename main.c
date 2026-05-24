@@ -21,13 +21,21 @@ int main(void) {
     Spawner spawner;
     spawner_init(&spawner, 5.0f);
 
-    float gravity = 2000.0f;
-    bool paused   = false;
+    float gravity    = 2000.0f;
+    float world_d    = 400.0f;
+    bool paused      = false;
     bool settings_open = false;
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Gnist");
     SetTargetFPS(60);
+
+    Camera3D camera = {0};
+    camera.position = (Vector3){400, 225, 800};
+    camera.target   = (Vector3){400, 225, 200};
+    camera.up       = (Vector3){0, 1, 0};
+    camera.fovy     = 60.0f;
+    camera.projection = CAMERA_PERSPECTIVE;
 
     while (!WindowShouldClose()) {
         float dt      = GetFrameTime();
@@ -42,14 +50,42 @@ int main(void) {
         }
 
         if (!paused && !settings_open) {
-            spawner_update(&spawner, &pool, dt, world_w, world_h);
+            spawner_update(&spawner, &pool, dt, world_w, world_h, world_d);
             physics_update(pool.data, pool.len, dt,
-                           world_w, world_h, gravity);
+                           world_w, world_h, world_d, gravity);
             pool_reap(&pool);
         }
 
+        if (!settings_open) {
+            if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
+                Vector2 delta = GetMouseDelta();
+                float pan_speed = 0.5f;
+                camera.target.x   -= delta.x * pan_speed;
+                camera.target.y   -= delta.y * pan_speed;
+                camera.position.x -= delta.x * pan_speed;
+                camera.position.y -= delta.y * pan_speed;
+            }
+            float wheel = GetMouseWheelMove();
+            if (wheel != 0.0f) {
+                Vector3 dir = (Vector3){
+                    camera.target.x - camera.position.x,
+                    camera.target.y - camera.position.y,
+                    camera.target.z - camera.position.z,
+                };
+                float len = sqrtf(dir.x*dir.x + dir.y*dir.y + dir.z*dir.z);
+                camera.position.x += dir.x / len * wheel * 50.0f;
+                camera.position.y += dir.y / len * wheel * 50.0f;
+                camera.position.z += dir.z / len * wheel * 50.0f;
+            }
+        }
+
         BeginDrawing();
-        ClearBackground(RAYWHITE);
+        ClearBackground(BLACK);
+
+        BeginMode3D(camera);
+
+        DrawCubeWires((Vector3){world_w*0.5f, world_h*0.5f, world_d*0.5f},
+                      world_w, world_h, world_d, DARKGRAY);
 
         for (size_t i = 0; i < pool.len; i++) {
             Particle *p = &pool.data[i];
@@ -57,9 +93,11 @@ int main(void) {
             float r     = p->radius;
             if (frac < 0.3f) r *= frac / 0.3f;
             Color c = ColorFromHSV(p->mass * 24.0f, 0.8f, 0.9f);
-            c.a = (unsigned char)(255.0f * frac);
-            DrawCircle((int)p->center.x, (int)p->center.y, r, c);
+            c.a = 255;
+            DrawSphere((Vector3){p->center.x, p->center.y, p->center.z}, r, c);
         }
+
+        EndMode3D();
 
         char hud[128];
         snprintf(hud, sizeof(hud),
@@ -67,14 +105,15 @@ int main(void) {
                  GetFPS(), pool.len, gravity,
                  spawner_get_interval(&spawner),
                  paused ? "PAUSED" : "running");
-        DrawText(hud, 10, 10, 18, DARKGRAY);
-        DrawText("[TAB:settings] [SPACE:pause] [R:clear]", 10, 32, 14, LIGHTGRAY);
+        DrawText(hud, 10, 10, 18, RAYWHITE);
+        DrawText("[TAB:settings] [SPACE:pause] [R:clear] [RMB+drag:pan] [scroll:zoom]",
+                 10, 32, 14, LIGHTGRAY);
 
         if (settings_open) {
             DrawRectangle(0, 0, (int)world_w, (int)world_h,
                           (Color){0, 0, 0, 160});
 
-            float pw = 520.0f, ph = 460.0f;
+            float pw = 520.0f, ph = 500.0f;
             float px = (world_w - pw) * 0.5f;
             float py = (world_h - ph) * 0.5f;
             Rectangle panel = {px, py, pw, ph};
@@ -102,6 +141,13 @@ int main(void) {
                          NULL, NULL, &gravity, 0.0f, 5000.0f);
             GuiLabel((Rectangle){px + pad + lbl_w + bar_w + 16, y, val_w, 24},
                      TextFormat("%.0f", gravity));
+
+            y += gap;
+            GuiLabel((Rectangle){px + pad, y, lbl_w, 24}, "depth");
+            GuiSliderBar((Rectangle){px + pad + lbl_w + 8, y, bar_w, 24},
+                         NULL, NULL, &world_d, 100.0f, 1000.0f);
+            GuiLabel((Rectangle){px + pad + lbl_w + bar_w + 16, y, val_w, 24},
+                     TextFormat("%.0f", world_d));
 
             y += gap + 4.0f;
             float c_lbl  = 60.0f;
@@ -152,6 +198,7 @@ int main(void) {
             float btn_w = (pw - pad * 2.0f - 12.0f) * 0.5f;
             if (GuiButton((Rectangle){px + pad, y, btn_w, 30}, "reset defaults")) {
                 gravity = 2000.0f;
+                world_d = 400.0f;
                 spawner_init(&spawner, 5.0f);
             }
             if (GuiButton((Rectangle){px + pad + btn_w + 12, y, btn_w, 30}, "clear all")) {
