@@ -25,6 +25,7 @@ int main(void) {
     float world_d    = 400.0f;
     bool paused      = false;
     bool settings_open = false;
+    Vector2 prev_mouse = {0};
 
     SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Gnist");
@@ -57,13 +58,35 @@ int main(void) {
         }
 
         if (!settings_open) {
-            if (IsMouseButtonDown(MOUSE_BUTTON_RIGHT)) {
-                Vector2 delta = GetMouseDelta();
-                float pan_speed = 0.5f;
-                camera.target.x   -= delta.x * pan_speed;
-                camera.target.y   -= delta.y * pan_speed;
-                camera.position.x -= delta.x * pan_speed;
-                camera.position.y -= delta.y * pan_speed;
+            if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT))
+                prev_mouse = GetMousePosition();
+            if (IsMouseButtonDown(MOUSE_BUTTON_LEFT)) {
+                Vector2 cur = GetMousePosition();
+                Vector2 delta = {cur.x - prev_mouse.x, cur.y - prev_mouse.y};
+                prev_mouse = cur;
+                float speed = 0.5f;
+                Vector3 fwd = {
+                    camera.target.x - camera.position.x,
+                    camera.target.y - camera.position.y,
+                    camera.target.z - camera.position.z,
+                };
+                float fl = sqrtf(fwd.x*fwd.x + fwd.y*fwd.y + fwd.z*fwd.z);
+                fwd.x /= fl; fwd.y /= fl; fwd.z /= fl;
+                Vector3 right = {
+                    fwd.y * camera.up.z - fwd.z * camera.up.y,
+                    fwd.z * camera.up.x - fwd.x * camera.up.z,
+                    fwd.x * camera.up.y - fwd.y * camera.up.x,
+                };
+                float rl = sqrtf(right.x*right.x + right.y*right.y + right.z*right.z);
+                right.x /= rl; right.y /= rl; right.z /= rl;
+                float dx = -delta.x * speed;
+                float dy =  delta.y * speed;
+                camera.target.x   += dx * right.x + dy * camera.up.x;
+                camera.target.y   += dx * right.y + dy * camera.up.y;
+                camera.target.z   += dx * right.z + dy * camera.up.z;
+                camera.position.x += dx * right.x + dy * camera.up.x;
+                camera.position.y += dx * right.y + dy * camera.up.y;
+                camera.position.z += dx * right.z + dy * camera.up.z;
             }
             float wheel = GetMouseWheelMove();
             if (wheel != 0.0f) {
@@ -106,7 +129,7 @@ int main(void) {
                  spawner_get_interval(&spawner),
                  paused ? "PAUSED" : "running");
         DrawText(hud, 10, 10, 18, RAYWHITE);
-        DrawText("[TAB:settings] [SPACE:pause] [R:clear] [RMB+drag:pan] [scroll:zoom]",
+        DrawText("[TAB:settings] [SPACE:pause] [R:clear] [LMB+drag:pan] [scroll:zoom]",
                  10, 32, 14, LIGHTGRAY);
 
         if (settings_open) {
