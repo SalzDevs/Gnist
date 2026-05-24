@@ -2,36 +2,20 @@
 #include "raylib.h"
 #include "physics.h"
 #include "pool.h"
+#include "spawner.h"
 
 #define WINDOW_WIDTH  800
 #define WINDOW_HEIGHT 450
-
-void initParticle(Particle *part, float x, float y) {
-    part->mass         = (float)GetRandomValue(1, 10);
-    part->radius       = 3.0f + part->mass * 1.2f;
-    part->center       = (float2){x, y};
-    part->velocity     = (float2){0, 0};
-    part->acceleration = (float2){0, 0};
-    part->ttl          = (float)GetRandomValue(5, 15);
-    float speed = (float)GetRandomValue(20, 120);
-    float angle = (float)GetRandomValue(0, 360) * DEG2RAD;
-    part->velocity = (float2){cosf(angle) * speed, sinf(angle) * speed};
-}
 
 int main(void) {
     Pool pool;
     pool_init(&pool, 50);
 
-    float rand_x = (float)GetRandomValue(0, WINDOW_WIDTH);
-    float rand_y = (float)GetRandomValue(0, WINDOW_HEIGHT);
-    Particle part;
-    initParticle(&part, rand_x, rand_y);
-    pool_push(&pool, part);
+    Spawner spawner;
+    spawner_init(&spawner, 5.0f, WINDOW_WIDTH, WINDOW_HEIGHT);
 
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Gnist");
     SetTargetFPS(60);
-
-    float spawnTimer = 0.0f;
 
     while (!WindowShouldClose()) {
         float dt = GetFrameTime();
@@ -39,16 +23,7 @@ int main(void) {
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        spawnTimer += dt;
-        if (spawnTimer > 5.0f) {
-            rand_x = (float)GetRandomValue(0, WINDOW_WIDTH);
-            rand_y = (float)GetRandomValue(0, WINDOW_HEIGHT);
-            Particle part;
-            initParticle(&part, rand_x, rand_y);
-            pool_push(&pool, part);
-            spawnTimer -= 5.0f;
-        }
-
+        spawner_update(&spawner, &pool, dt);
         physics_update(pool.data, pool.len, dt,
                        WINDOW_WIDTH, WINDOW_HEIGHT);
         pool_reap(&pool);
