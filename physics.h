@@ -14,6 +14,7 @@ typedef struct {
     float2 acceleration;
     float  mass;
     float  ttl;
+    float  max_ttl;
 } Particle;
 
 #define GRAVITY   2000.0f

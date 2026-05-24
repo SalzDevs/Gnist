@@ -9,6 +9,7 @@ static void init_particle(Particle *part, float x, float y) {
     part->velocity     = (float2){0, 0};
     part->acceleration = (float2){0, 0};
     part->ttl          = (float)GetRandomValue(5, 15);
+    part->max_ttl      = part->ttl;
     float speed = (float)GetRandomValue(20, 120);
     float angle = (float)GetRandomValue(0, 360) * DEG2RAD;
     part->velocity = (float2){cosf(angle) * speed, sinf(angle) * speed};
