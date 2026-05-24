@@ -1,7 +1,8 @@
 #include "physics.h"
 #include <math.h>
 
-void physics_update(Particle *arr, size_t count, float dt) {
+void physics_update(Particle *arr, size_t count, float dt,
+                    float world_w, float world_h) {
     for (size_t i = 0; i < count; i++) {
         arr[i].acceleration = (float2){0, 0};
     }
@@ -29,5 +30,11 @@ void physics_update(Particle *arr, size_t count, float dt) {
         arr[i].center.x   += arr[i].velocity.x * dt;
         arr[i].center.y   += arr[i].velocity.y * dt;
         arr[i].ttl        -= dt;
+
+        float r = arr[i].radius;
+        if (arr[i].center.x < r)           { arr[i].center.x = r;             arr[i].velocity.x *= -1.0f; }
+        if (arr[i].center.x > world_w - r) { arr[i].center.x = world_w - r;   arr[i].velocity.x *= -1.0f; }
+        if (arr[i].center.y < r)           { arr[i].center.y = r;             arr[i].velocity.y *= -1.0f; }
+        if (arr[i].center.y > world_h - r) { arr[i].center.y = world_h - r;   arr[i].velocity.y *= -1.0f; }
     }
 }

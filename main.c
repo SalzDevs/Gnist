@@ -52,7 +52,8 @@ int main(void) {
             spawnTimer -= 5.0f;
         }
 
-        physics_update(pool.data, pool.len, dt);
+        physics_update(pool.data, pool.len, dt,
+                       WINDOW_WIDTH, WINDOW_HEIGHT);
         pool_reap(&pool);
 
         for (size_t i = 0; i < pool.len; i++) {
