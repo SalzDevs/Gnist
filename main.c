@@ -79,7 +79,7 @@ int main(void) {
             DrawRectangle(0, 0, (int)world_w, (int)world_h,
                           (Color){0, 0, 0, 160});
 
-            float pw = 420.0f, ph = 300.0f;
+            float pw = 480.0f, ph = 310.0f;
             float px = (world_w - pw) * 0.5f;
             float py = (world_h - ph) * 0.5f;
             Rectangle panel = {px, py, pw, ph};
@@ -87,33 +87,39 @@ int main(void) {
             GuiPanel(panel, "Settings");
 
             float pad  = 24.0f;
-            float gap  = 36.0f;
-            float y    = py + 48.0f;
-            float sw   = pw - pad * 2.0f;
+            float gap  = 34.0f;
+            float y    = py + 50.0f;
+            float lbl_w = 80.0f;
+            float val_w = 50.0f;
+            float bar_w = pw - pad * 2.0f - lbl_w - val_w - 16.0f;
 
             float interval = spawner_get_interval(&spawner);
-            GuiSlider((Rectangle){px + pad, y, sw, 24},
-                      "spawn interval", TextFormat("%.1fs", interval),
-                      &interval, 0.5f, 10.0f);
+            GuiLabel((Rectangle){px + pad, y, lbl_w, 24}, "interval");
+            GuiSliderBar((Rectangle){px + pad + lbl_w + 8, y, bar_w, 24},
+                         NULL, NULL, &interval, 0.5f, 10.0f);
+            GuiLabel((Rectangle){px + pad + lbl_w + bar_w + 16, y, val_w, 24},
+                     TextFormat("%.1fs", interval));
             spawner_set_interval(&spawner, interval);
 
             y += gap;
-            GuiSlider((Rectangle){px + pad, y, sw, 24},
-                      "gravity", TextFormat("%.0f", gravity),
-                      &gravity, 0.0f, 5000.0f);
+            GuiLabel((Rectangle){px + pad, y, lbl_w, 24}, "gravity");
+            GuiSliderBar((Rectangle){px + pad + lbl_w + 8, y, bar_w, 24},
+                         NULL, NULL, &gravity, 0.0f, 5000.0f);
+            GuiLabel((Rectangle){px + pad + lbl_w + bar_w + 16, y, val_w, 24},
+                     TextFormat("%.0f", gravity));
 
             y += gap + 8.0f;
-            float btn_w = (sw - 12.0f) * 0.5f;
+            float btn_w = (pw - pad * 2.0f - 12.0f) * 0.5f;
             if (GuiButton((Rectangle){px + pad, y, btn_w, 30}, "reset defaults")) {
                 gravity = 2000.0f;
                 spawner_set_interval(&spawner, 5.0f);
             }
-            if (GuiButton((Rectangle){px + pad + btn_w + 12.0f, y, btn_w, 30}, "clear all")) {
+            if (GuiButton((Rectangle){px + pad + btn_w + 12, y, btn_w, 30}, "clear all")) {
                 pool.len = 0;
                 spawner.accumulator = spawner.interval;
             }
 
-            y += 46.0f;
+            y += 44.0f;
             if (GuiButton((Rectangle){px + (pw - 100.0f) * 0.5f, y, 100, 30}, "close"))
                 settings_open = false;
         }
