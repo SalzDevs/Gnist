@@ -16,6 +16,18 @@ void pool_push(Pool *p, Particle part) {
     p->len++;
 }
 
+void pool_reap(Pool *p) {
+    size_t i = 0;
+    while (i < p->len) {
+        if (p->data[i].ttl <= 0.0f) {
+            p->data[i] = p->data[p->len - 1];
+            p->len--;
+        } else {
+            i++;
+        }
+    }
+}
+
 void pool_destroy(Pool *p) {
     free(p->data);
     p->data = NULL;

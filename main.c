@@ -15,6 +15,7 @@ void initParticle(Particle *part, float x, float y) {
     part->center       = (float2){x, y};
     part->velocity     = (float2){0, 0};
     part->acceleration = (float2){0, 0};
+    part->ttl          = (float)GetRandomValue(5, 15);
     float speed = (float)GetRandomValue(20, 120);
     float angle = (float)GetRandomValue(0, 360) * DEG2RAD;
     part->velocity = (float2){cosf(angle) * speed, sinf(angle) * speed};
@@ -24,7 +25,6 @@ int main(void) {
     Pool pool;
     pool_init(&pool, 50);
 
-    /* spawn the first particle */
     float rand_x = (float)GetRandomValue(0, WINDOW_WIDTH);
     float rand_y = (float)GetRandomValue(0, WINDOW_HEIGHT);
     Particle part;
@@ -42,7 +42,6 @@ int main(void) {
         BeginDrawing();
         ClearBackground(RAYWHITE);
 
-        /* spawn a new particle every 5 seconds */
         spawnTimer += dt;
         if (spawnTimer > 5.0f) {
             rand_x = (float)GetRandomValue(0, WINDOW_WIDTH);
@@ -53,10 +52,9 @@ int main(void) {
             spawnTimer -= 5.0f;
         }
 
-        /* physics — pure computation, no raylib */
         physics_update(pool.data, pool.len, dt);
+        pool_reap(&pool);
 
-        /* draw — the render seam: float2 → raylib coords */
         for (size_t i = 0; i < pool.len; i++) {
             Particle *p = &pool.data[i];
             DrawCircle((int)p->center.x, (int)p->center.y,
