@@ -17,8 +17,8 @@ $(RAYLIB_LIB):
 	@echo ">> building raylib..."
 	$(MAKE) -C $(RAYLIB_SRC) PLATFORM=PLATFORM_DESKTOP
 
-gnist: $(RAYLIB_LIB) main.c
-	$(CC) $(CFLAGS) -o $@ main.c $(LDFLAGS)
+gnist: $(RAYLIB_LIB) main.c physics.c physics.h
+	$(CC) $(CFLAGS) -o $@ main.c physics.c $(LDFLAGS)
 
 run: gnist
 	./gnist
